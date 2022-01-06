@@ -10,23 +10,22 @@ SRC_DIR = ./src
 BUILD_DIR = ./build
 BIN_DIR = ./bin
 LIB_DIR = ./lib
-SRC_LIST = $(SRC_DIR)/FastaConverter.cpp
+THIRD_PARTY_DIR = ./thirdparty
+SRC_LIST = $(SRC_DIR)/gzstream.cpp $(SRC_DIR)/FastaConverter.cpp
 OBJ_LIST = $(subst $(SRC_DIR),$(BUILD_DIR),$(SRC_LIST:.cpp=.o))
+PROG_PATH = $(BIN_DIR)/$(PROG_NAME)
 
 .PHONY: compile clean
 
-compile: $(TARGET_LIB)
-	@$(CC) $(CFLAG) -o $(BIN_DIR)/$(PROG_NAME) src/main.cpp $(LIB_DIR)/$(TARGET_LIB)
+compile: dirmake compile_lib
+	@$(CC) -O2 -o $(PROG_PATH) -std=c++2a $(BUILD_DIR)/main.o $(OBJ_LIST) -lz -I"${CONDA_PREFIX}"/include -I"${THIRD_PARTY_DIR}"/hat-trie/include
 
-# Enumerating of every *.cpp as *.o and using that as dependency
-$(TARGET_LIB): $(OBJ_LIST)
-	@ar -r -o $(LIB_DIR)/$@ $^
+compile_lib:
+	@$(CC) -c $(SRC_DIR)/gzstream.cpp -O2 -o $(BUILD_DIR)/gzstream.o
+	@$(CC) -c $(SRC_DIR)/FastaConverter.cpp -O2 -o $(BUILD_DIR)/FastaConverter.o -I"${THIRD_PARTY_DIR}"/hat-trie/include
+	@$(CC) -c $(SRC_DIR)/main.cpp -O2 -o $(BUILD_DIR)/main.o -I"${THIRD_PARTY_DIR}"/hat-trie/include
 
-#Compiling every *.cpp to *.o
-$(OBJ_LIST): $(SRC_LIST) dirmake
-	@$(CC) -c $(CFLAGS) -o $@  $<
-
-dirmake:
+dirmake: $(BUILD_DIR) $(BIN_DIR) $(LIB_DIR)
 	@mkdir -p $(BUILD_DIR)
 	@mkdir -p $(BIN_DIR)
 	@mkdir -p $(LIB_DIR)

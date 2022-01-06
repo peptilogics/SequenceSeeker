@@ -2,6 +2,7 @@
 bin/
 build/
 lib/
+data/
 
 # Prerequisites
 *.d
